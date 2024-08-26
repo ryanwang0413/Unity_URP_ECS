@@ -6,6 +6,7 @@ using UnityEngine;
 using Unity.Collections;
 using System;
 using System.Buffers;
+using Unity.Rendering;
 
 [BurstCompile]
 [UpdateAfter(typeof(SpawnSystem))]
@@ -24,6 +25,26 @@ public partial struct TextureGridSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        foreach (var (textureComponent, entity) in SystemAPI.Query<RefRO<TextureUpdateComponent>>().WithEntityAccess())
+        {
+            var entityManager = state.EntityManager;
+
+            Entity textureEntity = textureComponent.ValueRO.TextureEntity;
+            Texture2D texture = entityManager.GetComponentObject<Texture2D>(textureEntity);
+            // Example: Modify or replace the texture dynamically
+            if (texture != null)
+            {
+                Debug.Log("got texture");
+                // // 假设你有一个新的纹理 newTexture
+                // Texture2D newTexture = // 获取新的 Texture2D 实例
+                // if (newTexture != null)
+                // {
+                //     // 更新 Texture2D
+                //     entityManager.SetComponentObject(textureEntity, newTexture);
+                // }
+            }
+        }
+
         foreach (var power in SystemAPI.Query<RefRO<TextureGridHeightPowerComponent>>())
         {
             _power = power.ValueRO.power;
