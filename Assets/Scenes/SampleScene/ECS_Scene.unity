@@ -204,9 +204,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da8aab931acb60348bcd7b4b99b34b12, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  power: 4.65
-  texture: {fileID: 2800000, guid: 67ab56731674992459c16edce1f84265, type: 3}
-  gameManager: {fileID: 0}
+  power: 8
+  moveSmooth: 5
+  texture: {fileID: 2800000, guid: 6aab7c3465f4bde43a61926e0173753e, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

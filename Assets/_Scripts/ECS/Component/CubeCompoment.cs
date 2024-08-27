@@ -26,3 +26,9 @@ public struct CubeTransparency : IComponentData
 {
     public float Value;
 }
+
+[MaterialProperty("_Emission")]
+public struct EmissionComponent : IComponentData
+{
+    public float emission;
+}

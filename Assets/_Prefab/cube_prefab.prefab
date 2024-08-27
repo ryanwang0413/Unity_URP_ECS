@@ -77,7 +77,7 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Materials.Array.data[0]
       value: 
-      objectReference: {fileID: 2100000, guid: dd89271632d35da48aec8965a3889691, type: 2}
+      objectReference: {fileID: 2100000, guid: 52b9e1368bb0fda43b67d2a6e3a7da75, type: 2}
     - target: {fileID: 919132149155446097, guid: 24adb64e3f2921d479e5f9df525b63b3,
         type: 3}
       propertyPath: m_Name
@@ -114,7 +114,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 015a4884f4174ca4eab09ddeb3f271e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
+  emissionValue: 0.57
 --- !u!65 &1853816291087992829
 BoxCollider:
   m_ObjectHideFlags: 0

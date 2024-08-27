@@ -8,6 +8,8 @@ using System.Threading;
 using Microsoft.Unity.VisualStudio.Editor;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.Entities;
+using Unity.Collections;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,43 +19,26 @@ public class GameManager : MonoBehaviour
     [SerializeField] int rxPort = 8000; // port to receive data from Python on
     [SerializeField] int txPort = 8001; // port to send data to Python on
 
-    public GameObject image;
-    private Texture2D tex;
-    public Texture2D tex_sample;
-
+    private EntityManager _entityManager;
+    public Entity _entity;
+    private Texture2D updateTexture; // 持續更新的圖片
+    public Texture2D defaultTexture; // 預設使用的圖片
     public Texture2D GetTargetImage()
     {
-        if (!tex)
-        {
-            Debug.Log("tex_sample");
-            return tex_sample;
-        }
-        else
-        {
-            Debug.Log("tex");
-            return tex;
-        }
+        if (!updateTexture) { return defaultTexture; }
+        else { return updateTexture; }
     }
 
-    public Texture2D GetTargetImageTest()
-    {
-        return tex_sample;
-    }
+    // 傳給 Entity 的資料
+    private float[,] _floatArray;
+    private NativeArray<float> _nativeArray;
+    bool imageReady = false;
+    byte[] imageBuffer;
 
-    // Create necessary UdpClient objects
+    // Socket
     UdpClient client;
     IPEndPoint remoteEndPoint;
     Thread receiveThread; // Receiving Thread
-
-    // IEnumerator SendDataCoroutine() // DELETE THIS: Added to show sending data from Unity to Python via UDP
-    // {
-    //     while (true)
-    //     {
-    //         SendData("Sent from Unity: " + i.ToString());
-    //         i++;
-    //         yield return new WaitForSeconds(1f);
-    //     }
-    // }
 
     public void SendData(string message) // Use to send data to Python
     {
@@ -70,9 +55,7 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        tex = new Texture2D(64, 64);
-        // image.GetComponent<Renderer>().material.mainTexture = tex;
-        image.GetComponent<MeshRenderer>().material.mainTexture = tex;
+        updateTexture = new Texture2D(128, 128);
 
         // Create remote endpoint (to Matlab) 
         remoteEndPoint = new IPEndPoint(IPAddress.Parse(IP), txPort);
@@ -92,19 +75,55 @@ public class GameManager : MonoBehaviour
         //StartCoroutine(SendDataCoroutine()); // DELETE THIS: Added to show sending data from Unity to Python via UDP
     }
 
-    bool imageReady = false;
-    byte[] imageBuffer;
+    private void Start()
+    {
+        _entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+        // 動態建立一組 Entity 加入 Component
+        _entity = _entityManager.CreateEntity(typeof(FloatArrayComponent));
+        _floatArray = ConvertToArray(defaultTexture);
+        // 初始化資料
+        _nativeArray = new NativeArray<float>(_floatArray.Length, Allocator.Persistent);
+        UpdateComponentData(_floatArray);
+    }
+
     private void Update()
     {
         if (imageReady)
         {
             // print(">> " + imageBuffer);
             // byte[] imageBytes = Convert.FromBase64String(rec_text);
-            tex.LoadImage(imageBuffer);
-            tex.Apply();
+            updateTexture.LoadImage(imageBuffer);
+            updateTexture.Apply();
 
             imageReady = false;
         }
+
+        _floatArray = ConvertToArray(GetTargetImage());
+        UpdateComponentData(_floatArray);
+
+    }
+
+    private void UpdateComponentData(float[,] _imageArray)
+    {
+        int rows = _imageArray.GetLength(0);
+        int columns = _imageArray.GetLength(1);
+
+        // float[,] 轉為 NativeArray
+        for (int i = 0; i < rows; i++)
+        {
+            for (int j = 0; j < columns; j++)
+            {
+                _nativeArray[i * columns + j] = _imageArray[i, j];
+            }
+        }
+
+        // 更新 Entity 中的目標 Component
+        _entityManager.SetComponentData(_entity, new FloatArrayComponent
+        {
+            rows = rows,
+            columns = columns,
+            values = _nativeArray
+        });
     }
 
     // Receive data, update packets received
@@ -116,13 +135,10 @@ public class GameManager : MonoBehaviour
             {
                 IPEndPoint anyIP = new IPEndPoint(IPAddress.Any, 0);
                 byte[] data = client.Receive(ref anyIP);
-
                 imageBuffer = data.ToArray();
                 // string text = Encoding.UTF8.GetString(data);
                 // print(">> " + text);
-
                 imageReady = true;
-
                 // rec_text = text;
                 // ProcessInput(text);
             }
@@ -152,4 +168,28 @@ public class GameManager : MonoBehaviour
         client.Close();
     }
 
+    public float[,] ConvertToArray(Texture2D image)
+    {
+        int width = image.width;
+        int height = image.height;
+        float[,] grayscaleArray = new float[width, height];
+        for (int x = 0; x < width; x++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                Color pixelColor = image.GetPixel(x, y);
+                float grayValue = pixelColor.grayscale;
+                grayscaleArray[x, y] = grayValue;
+            }
+        }
+        return grayscaleArray;
+    }
+
+    private void OnDestroy()
+    {
+        if (_nativeArray.IsCreated)
+        {
+            _nativeArray.Dispose();
+        }
+    }
 }

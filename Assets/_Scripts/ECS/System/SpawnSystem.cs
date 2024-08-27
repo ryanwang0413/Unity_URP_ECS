@@ -80,6 +80,11 @@ public partial struct SpawnSystem : ISystem
                     Value = 0
                 });
 
+                // GetEntityCommandBuffer(ref state).AddComponent(0, newEntity, new EmissionComponent
+                // {
+                //     emission = 0
+                // });
+
                 bufferIndex++;
             }
         }

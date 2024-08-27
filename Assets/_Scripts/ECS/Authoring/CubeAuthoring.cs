@@ -4,7 +4,9 @@ using UnityEngine;
 using Unity.Entities;
 
 public class CubeAuthoring : MonoBehaviour
-{ }
+{
+    public float emissionValue;
+}
 
 public class CubeBaker : Baker<CubeAuthoring>
 {
@@ -13,5 +15,9 @@ public class CubeBaker : Baker<CubeAuthoring>
         Entity entity = GetEntity(authoring, TransformUsageFlags.Dynamic);
         AddComponent(entity, new CubeCompoment
         { });
+        AddComponent(entity, new EmissionComponent
+        {
+            emission = authoring.emissionValue
+        });
     }
 }
