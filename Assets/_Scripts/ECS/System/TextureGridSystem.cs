@@ -17,24 +17,22 @@ public partial struct TextureGridSystem : ISystem
 
     [BurstCompile]
     public void OnCreate(ref SystemState state)
-    {
-
-    }
+    { }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        EntityManager entityManager = state.EntityManager;
+        NativeArray<Entity> entities = entityManager.GetAllEntities(Allocator.Temp); // entities.Length = 16395
+
         foreach (RefRO<TextureGridHeightPowerComponent> component in SystemAPI.Query<RefRO<TextureGridHeightPowerComponent>>())
         {
             _power = component.ValueRO.power;
             _moveSmooth = component.ValueRO.moveSmooth;
         }
 
-        foreach (var (floatArray, emission) in SystemAPI.Query<RefRO<FloatArrayComponent>, RefRO<EmissionComponent>>())
+        foreach (var floatArray in SystemAPI.Query<RefRO<FloatArrayComponent>>())
         {
-            EntityManager entityManager = state.EntityManager;
-            NativeArray<Entity> entities = entityManager.GetAllEntities(Allocator.Temp); // entities.Length = 16395
-
             int rows = floatArray.ValueRO.rows;
             int columns = floatArray.ValueRO.columns;
             NativeArray<float> values = floatArray.ValueRO.values;
@@ -44,47 +42,38 @@ public partial struct TextureGridSystem : ISystem
             for (int i = 0; i < entities.Length; i++)
             {
                 if (entityManager.HasComponent<CubeCompoment>(entities[i]) &&
-                    entityManager.HasComponent<BlockIDComponent>(entities[i]) &&
-                    entityManager.HasComponent<EmissionComponent>(entities[i]))
+                    entityManager.HasComponent<BlockIDComponent>(entities[i]))
                 {
                     LocalTransform localTransform = entityManager.GetComponentData<LocalTransform>(entities[i]);
 
-                    // float pos_y = math.lerp(localTransform.Position.y, values[index] * _power, 0.5f);
+                    float clampedValue = Mathf.Clamp01(values[index]);
+                    float multiplier = _power * Mathf.Pow(2f, clampedValue);
+                    float amplifiedValue = clampedValue * multiplier;
 
                     float3 position = new float3(
                         localTransform.Position.x,
-                        math.lerp(localTransform.Position.y, values[index] * _power, _moveSmooth * SystemAPI.Time.DeltaTime),
+                        math.lerp(localTransform.Position.y, amplifiedValue, _moveSmooth * SystemAPI.Time.DeltaTime),
                         localTransform.Position.z
                     );
 
                     entityManager.SetComponentData<LocalTransform>(entities[i], LocalTransform.FromPosition(position));
-
-                    float emissionValue = emission.ValueRO.emission + values[index];
-                    entityManager.SetComponentData<EmissionComponent>(entities[i], new EmissionComponent { emission = emissionValue });
 
                     index++;
                 }
             }
         }
 
-        // foreach (var buffer in SystemAPI.Query<DynamicBuffer<TextureGridComponent>>())
+        // 非常 lag...改用 IJobEntity
+        // foreach (var emission in SystemAPI.Query<RefRW<EmissionComponent>>())
         // {
-        //     EntityManager entityManager = state.EntityManager;
-        //     NativeArray<Entity> entities = entityManager.GetAllEntities(Allocator.Temp); // entities.Length = 16395
         //     int index = 0;
         //     for (int i = 0; i < entities.Length; i++)
         //     {
-        //         if (entityManager.HasComponent<CubeCompoment>(entities[i]) && entityManager.HasComponent<BlockIDComponent>(entities[i]))
+        //         if (entityManager.HasComponent<EmissionComponent>(entities[i]))
         //         {
-        //             LocalTransform localTransform = entityManager.GetComponentData<LocalTransform>(entities[i]);
-
-        //             float3 position = new float3(
-        //                 localTransform.Position.x,
-        //                 buffer[index].value * _power,
-        //                 localTransform.Position.z
-        //             );
-
-        //             entityManager.SetComponentData<LocalTransform>(entities[i], LocalTransform.FromPosition(position));
+        //             // float emissionValue = -2;
+        //             // emission.ValueRW.emission = emissionValue;
+        //             entityManager.SetComponentData<EmissionComponent>(entities[i], new EmissionComponent { emission = -2 });
 
         //             index++;
         //         }

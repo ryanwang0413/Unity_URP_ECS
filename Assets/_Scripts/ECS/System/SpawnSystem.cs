@@ -40,16 +40,16 @@ public partial struct SpawnSystem : ISystem
     private void ProcessSpawner(ref SystemState state, RefRW<SpawnComponent> spawner)
     {
         int bufferIndex = 0;
-        for (int i = 0; i < spawner.ValueRO.gridCound; i++)
+        for (int i = 0; i < spawner.ValueRO.grid_rows; i++)
         {
-            for (int j = 0; j < spawner.ValueRO.gridCound; j++)
+            for (int j = 0; j < spawner.ValueRO.grid_columns; j++)
             {
                 //Entity newEntity = state.EntityManager.Instantiate(spawner.ValueRO.prefabArray.GetPrefab(i));
                 Entity newEntity = state.EntityManager.Instantiate(spawner.ValueRO.singlePrefab);
 
                 // 計算格子的位置
-                float posX = i * spawner.ValueRO.padding - spawner.ValueRO.gridCound / 2;
-                float posZ = j * spawner.ValueRO.padding - spawner.ValueRO.gridCound / 2;
+                float posX = i * spawner.ValueRO.padding - spawner.ValueRO.grid_rows / 2;
+                float posZ = j * spawner.ValueRO.padding - spawner.ValueRO.grid_columns / 2;
 
                 float3 position = new float3(
                     posX,
@@ -80,10 +80,10 @@ public partial struct SpawnSystem : ISystem
                     Value = 0
                 });
 
-                // GetEntityCommandBuffer(ref state).AddComponent(0, newEntity, new EmissionComponent
-                // {
-                //     emission = 0
-                // });
+                GetEntityCommandBuffer(ref state).AddComponent(0, newEntity, new EmissionComponent
+                {
+                    emission = 0
+                });
 
                 bufferIndex++;
             }

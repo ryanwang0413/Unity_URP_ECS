@@ -40,22 +40,22 @@ public class GameManager : MonoBehaviour
     IPEndPoint remoteEndPoint;
     Thread receiveThread; // Receiving Thread
 
-    public void SendData(string message) // Use to send data to Python
-    {
-        try
-        {
-            byte[] data = Encoding.UTF8.GetBytes(message);
-            client.Send(data, data.Length, remoteEndPoint);
-        }
-        catch (Exception err)
-        {
-            print(err.ToString());
-        }
-    }
+    // public void SendData(string message) // Use to send data to Python
+    // {
+    //     try
+    //     {
+    //         byte[] data = Encoding.UTF8.GetBytes(message);
+    //         client.Send(data, data.Length, remoteEndPoint);
+    //     }
+    //     catch (Exception err)
+    //     {
+    //         print(err.ToString());
+    //     }
+    // }
 
     void Awake()
     {
-        updateTexture = new Texture2D(128, 128);
+        updateTexture = new Texture2D(320, 180);
 
         // Create remote endpoint (to Matlab) 
         remoteEndPoint = new IPEndPoint(IPAddress.Parse(IP), txPort);
@@ -81,6 +81,7 @@ public class GameManager : MonoBehaviour
         // 動態建立一組 Entity 加入 Component
         _entity = _entityManager.CreateEntity(typeof(FloatArrayComponent));
         _floatArray = ConvertToArray(defaultTexture);
+        Debug.Log("defaultTexture size : " + defaultTexture.width + " | " + defaultTexture.height);
         // 初始化資料
         _nativeArray = new NativeArray<float>(_floatArray.Length, Allocator.Persistent);
         UpdateComponentData(_floatArray);
@@ -137,7 +138,7 @@ public class GameManager : MonoBehaviour
                 byte[] data = client.Receive(ref anyIP);
                 imageBuffer = data.ToArray();
                 // string text = Encoding.UTF8.GetString(data);
-                // print(">> " + text);
+                // print(">> " + imageBuffer.Length);
                 imageReady = true;
                 // rec_text = text;
                 // ProcessInput(text);

@@ -3,7 +3,8 @@ using Unity.Entities;
 
 public class SpawnAuthoring : MonoBehaviour
 {
-    public int gridCound;
+    public int grid_rows;
+    public int grid_columns;
     public float padding;
     public GameObject singlePrefab;
     public GameObject[] prefabs;
@@ -23,18 +24,12 @@ public class SpawnBaker : Baker<SpawnAuthoring>
 
         AddComponent(entity, new SpawnComponent
         {
-            gridCound = authoring.gridCound,
+            grid_rows = authoring.grid_rows,
+            grid_columns = authoring.grid_columns,
             padding = authoring.padding,
             singlePrefab = GetEntity(authoring.singlePrefab, TransformUsageFlags.Dynamic),
             prefabArray = new PrefabArray(entities)
         });
-
-        // AddComponent(entity, new SpawnComponent
-        // {
-        //     gridCound = authoring.gridCound,
-        //     padding = authoring.padding,
-        //     // prefab = GetEntity(authoring.prefab, TransformUsageFlags.Dynamic)
-        // });
     }
 }
 

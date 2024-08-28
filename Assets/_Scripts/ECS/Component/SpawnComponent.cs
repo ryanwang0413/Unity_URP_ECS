@@ -6,7 +6,8 @@ using UnityEngine;
 
 public struct SpawnComponent : IComponentData
 {
-    public int gridCound;
+    public int grid_rows;
+    public int grid_columns;
     public float padding;
     public Entity singlePrefab;
     public PrefabArray prefabArray;

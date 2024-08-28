@@ -1,9 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Rendering;
-using UnityEngine;
 
 
 public struct CubeCompoment : IComponentData
@@ -25,10 +22,4 @@ public struct CubeOffset : IComponentData
 public struct CubeTransparency : IComponentData
 {
     public float Value;
-}
-
-[MaterialProperty("_Emission")]
-public struct EmissionComponent : IComponentData
-{
-    public float emission;
 }
